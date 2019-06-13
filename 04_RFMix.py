@@ -18,8 +18,9 @@ arg_pop = args.pop
 arg_pop_name = arg_pop.split("/")[-1].replace(".txt", "")
 ref_bcf = args.ref
 chrom = args.chrom
-os.system("mkdir -p ./sim_RFMix/")
 cwd = os.getcwd() + "/"
+os.system("mkdir -p ./sim_RFMix/")
+
 
 #split pop file and vcf into references 
 pop = pd.read_csv(arg_pop, header = None, sep = "\t")
