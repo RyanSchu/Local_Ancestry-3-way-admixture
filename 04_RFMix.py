@@ -19,7 +19,7 @@ arg_pop_name = arg_pop.split("/")[-1].replace(".txt", "")
 ref_bcf = args.ref
 chrom = args.chrom
 cwd = os.getcwd() + "/"
-os.system("mkdir -p ./sim_RFMix/")
+os.system("mkdir -p ." + cwd  + "/sim_RFMix/")
 
 
 #split pop file and vcf into references 
@@ -30,57 +30,57 @@ for ref_pop_name in ["NAT", "CEU", "YRI"]:
     
     if len(ref_pop_IDs > 0): #if that pop is in the cohort
         cohort_anc_pops.append(ref_pop_name)
-        ref_pop_IDs.to_csv("./sim_RFMix/" + ref_pop_name + "_" + arg_pop_name + "_IDs.txt", index = False, header = False) #write reference id lists to file
+        ref_pop_IDs.to_csv(cwd  + "/sim_RFMix/" + ref_pop_name + "_" + arg_pop_name + "_IDs.txt", index = False, header = False) #write reference id lists to file
     
         #pull reference genos and convert 
-        os.system("bcftools view -S ./sim_RFMix/" + ref_pop_name + "_" + arg_pop_name + "_IDs.txt --force-samples -Oz -o ./sim_RFMix/" + ref_pop_name + "_" + arg_pop_name + "_ref.vcf.gz " + ref_bcf)
-        os.system("bcftools index --threads 40 -f --tbi ./sim_RFMix/" + ref_pop_name + "_" + arg_pop_name + "_ref.vcf.gz > ./sim_RFMix/" + ref_pop_name + "_" + arg_pop_name + "_ref.vcf.tbi")
+        os.system("bcftools view -S " + cwd  + "/sim_RFMix/" + ref_pop_name + "_" + arg_pop_name + "_IDs.txt --force-samples -Oz -o " + cwd  + "/sim_RFMix/" + ref_pop_name + "_" + arg_pop_name + "_ref.vcf.gz " + ref_bcf)
+        os.system("bcftools index --threads 40 -f --tbi " + cwd  + "/sim_RFMix/" + ref_pop_name + "_" + arg_pop_name + "_ref.vcf.gz > " + cwd  + "/sim_RFMix/" + ref_pop_name + "_" + arg_pop_name + "_ref.vcf.tbi")
 
 #extract query and merge ref and query in the correct order (I now realize this is redundant but I already wrote it so whoops)... also this is useful for ELAI later
-os.system("cp " + args.query + " ./sim_RFMix/" + arg_pop_name + ".vcf; bgzip ./sim_RFMix/" + arg_pop_name + ".vcf")
-os.system("bcftools index --threads 40 -f --tbi ./sim_RFMix/" + arg_pop_name + ".vcf.gz > ./sim_RFMix/" + arg_pop_name + ".vcf.tbi")
+os.system("cp " + args.query + " " + cwd  + "/sim_RFMix/" + arg_pop_name + ".vcf; bgzip " + cwd  + "/sim_RFMix/" + arg_pop_name + ".vcf")
+os.system("bcftools index --threads 40 -f --tbi " + cwd  + "/sim_RFMix/" + arg_pop_name + ".vcf.gz > " + cwd  + "/sim_RFMix/" + arg_pop_name + ".vcf.tbi")
 cohort_anc_pops_str = ""
 for cohort_anc_pop in cohort_anc_pops: #some of them only have two ancestries
-    cohort_anc_pops_str = cohort_anc_pops_str + "./sim_RFMix/" + cohort_anc_pop + "_" + arg_pop_name + "_ref.vcf.gz "
-os.system("bcftools merge -Ov " + cohort_anc_pops_str + "./sim_RFMix/" + arg_pop_name + ".vcf.gz -o ./sim_RFMix/" + arg_pop_name + "_merged_unfiltered.vcf")
+    cohort_anc_pops_str = cohort_anc_pops_str + cwd  + "/sim_RFMix/" + cohort_anc_pop + "_" + arg_pop_name + "_ref.vcf.gz "
+os.system("bcftools merge -Ov " + cohort_anc_pops_str + cwd  + "/sim_RFMix/" + arg_pop_name + ".vcf.gz -o " + cwd  + "/sim_RFMix/" + arg_pop_name + "_merged_unfiltered.vcf")
 
 #remove SNPs without genetic map coordinates
-os.system("awk '{print $1}' /home/angela/1000G/chr" + chrom + ".interpolated_genetic_map > ./sim_RFMix/chr" + chrom + ".interpolated_genetic_map.SNPs")
-os.system("vcftools --vcf ./sim_RFMix/" + arg_pop_name + "_merged_unfiltered.vcf --max-missing 1 --snps ./sim_RFMix/chr" + chrom + ".interpolated_genetic_map.SNPs --recode --out ./sim_RFMix/" + arg_pop_name + "_merged; mv ./sim_RFMix/" + arg_pop_name + "_merged.recode.vcf ./sim_RFMix/" + arg_pop_name + "_merged.vcf")
-os.system("vcf-query -l ./sim_RFMix/" + arg_pop_name + "_merged.vcf > ./sim_RFMix/" + arg_pop_name + "_merged.vcf_ids.txt") #max missing has genotyping rate of 100%
+os.system("awk '{print $1}' /home/angela/1000G/chr" + chrom + ".interpolated_genetic_map > " + cwd  + "/sim_RFMix/chr" + chrom + ".interpolated_genetic_map.SNPs")
+os.system("vcftools --vcf " + cwd  + "/sim_RFMix/" + arg_pop_name + "_merged_unfiltered.vcf --max-missing 1 --snps " + cwd  + "/sim_RFMix/chr" + chrom + ".interpolated_genetic_map.SNPs --recode --out " + cwd  + "/sim_RFMix/" + arg_pop_name + "_merged; mv " + cwd  + "/sim_RFMix/" + arg_pop_name + "_merged.recode.vcf " + cwd  + "/sim_RFMix/" + arg_pop_name + "_merged.vcf")
+os.system("vcf-query -l " + cwd  + "/sim_RFMix/" + arg_pop_name + "_merged.vcf > " + cwd  + "/sim_RFMix/" + arg_pop_name + "_merged.vcf_ids.txt") #max missing has genotyping rate of 100%
 
 #make classes file #arg_pop_name = "pop_codes_80_20"
-vcf_IDs = pd.read_csv("./sim_RFMix/" + arg_pop_name + "_merged.vcf_ids.txt", header = None, sep = "\t")
+vcf_IDs = pd.read_csv(cwd  + "/sim_RFMix/" + arg_pop_name + "_merged.vcf_ids.txt", header = None, sep = "\t")
 vcf_IDs.columns = [("IID")]
 pop.columns = ["IID", "pop"]
 vcf_pops = pd.merge(vcf_IDs, pop, on = "IID", how = "left")
 vcf_pops["pop"] = vcf_pops["pop"].astype("category")
 vcf_pops["pop"] = pd.factorize(vcf_pops["pop"])[0] + 1 #admixed is 0
-with open("./sim_RFMix/" + arg_pop_name + ".classes", "w") as f:
+with open(cwd  + "/sim_RFMix/" + arg_pop_name + ".classes", "w") as f:
     for item in vcf_pops["pop"]:
         item_str = str(item) + " "
         f.write(item_str) #haplotypes so do it twice
         f.write(item_str)
 
 #make haplotypes file
-os.system("bcftools convert --hapsample --vcf-ids ./sim_RFMix/" + arg_pop_name + "_merged.vcf -o ./sim_RFMix/" + arg_pop_name + "_merged.haps")
-os.system("zcat ./sim_RFMix/" + arg_pop_name + "_merged.haps.hap.gz | awk '{ $1=\"\"; $2=\"\"; $3=\"\"; $4=\"\"; $5=\"\"; print}' | sed 's/\s//g' | sed s/\\*//g > ./sim_RFMix/" + arg_pop_name + "_merged.haps")
-os.system("sed '/##/d' ./sim_RFMix/" + arg_pop_name + "_merged.vcf | cut -f3 > ./sim_RFMix/" + arg_pop_name + ".snps")
+os.system("bcftools convert --hapsample --vcf-ids " + cwd  + "/sim_RFMix/" + arg_pop_name + "_merged.vcf -o " + cwd  + "/sim_RFMix/" + arg_pop_name + "_merged.haps")
+os.system("zcat " + cwd  + "/sim_RFMix/" + arg_pop_name + "_merged.haps.hap.gz | awk '{ $1=\"\"; $2=\"\"; $3=\"\"; $4=\"\"; $5=\"\"; print}' | sed 's/\s//g' | sed s/\\*//g > " + cwd  + "/sim_RFMix/" + arg_pop_name + "_merged.haps")
+os.system("sed '/##/d' " + cwd  + "/sim_RFMix/" + arg_pop_name + "_merged.vcf | cut -f3 > " + cwd  + "/sim_RFMix/" + arg_pop_name + ".snps")
 
 #make cM map
-vcf_SNPs = pd.read_csv("./sim_RFMix/" + arg_pop_name + ".snps")
+vcf_SNPs = pd.read_csv(cwd  + "/sim_RFMix/" + arg_pop_name + ".snps")
 full_gen_map = pd.read_csv("/home/angela/1000G/chr" + chrom + ".interpolated_genetic_map", header = None, sep = " ")
 vcf_SNPs.columns = [("SNP")]
 full_gen_map.columns = ["SNP", "BP", "CM"]
 vcf_gen_map = pd.merge(vcf_SNPs, full_gen_map, on = "SNP", how = "left").drop("SNP", axis = 1).drop("BP", axis = 1)
-vcf_gen_map.to_csv("./sim_RFMix/" + arg_pop_name + ".pos", index = False, header = False, sep = "\t", na_rep = "NA")
+vcf_gen_map.to_csv(cwd  + "/sim_RFMix/" + arg_pop_name + ".pos", index = False, header = False, sep = "\t", na_rep = "NA")
 
 #leggo (and time it while at it)
-os.system("mkdir -p ./sim_RFMix/results/")
+os.system("mkdir -p " + cwd  + "/sim_RFMix/results/")
 os.system("cd /home/angela/Ad_PX_pipe_data/RFMix/; (/usr/bin/time -v python RunRFMix.py -e 2 -w 0.2 --num-threads 1 --forward-backward PopPhased " + cwd + "./sim_RFMix/" + arg_pop_name + "_merged.haps " + cwd + "./sim_RFMix/" + arg_pop_name + ".classes " + cwd + "./sim_RFMix/" + arg_pop_name + ".pos -o " + cwd + "./sim_RFMix/results/" + arg_pop_name + ".rfmix) 2> " + cwd + "./sim_RFMix/results/" + arg_pop_name + "_benchmarking.txt; cd " + cwd)
 
 #rm extra stuff since results are in their own folder
 if args.cleanup:
-  os.system("rm ./sim_RFMix/*")
+  os.system("rm " + cwd  + "sim_RFMix/*")
 
 print("RFMix has completed running on " + arg_pop_name + ". Have a nice day :).")
